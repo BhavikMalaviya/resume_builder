@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -36,7 +38,7 @@ class AddResumeScreen extends StatelessWidget {
                       CircleAvatar(
                         backgroundColor: AppColors.accentColor.withOpacity(0.2),
                         radius: 70,
-                        child: _con.profileImage.value.path.isEmpty
+                        child: _con.profileImage.value.isEmpty
                             ? Icon(
                                 Icons.person,
                                 size: 50,
@@ -44,7 +46,11 @@ class AddResumeScreen extends StatelessWidget {
                               )
                             : ClipRRect(
                                 borderRadius: BorderRadius.circular(100),
-                                child: Image.file(_con.profileImage.value),
+                                child: _con.profileImage.value.contains("http")
+                                    ? Image.network(_con.profileImage.value)
+                                    : Image.file(
+                                        File(_con.profileImage.value),
+                                      ),
                               ),
                       ),
                       const CircleAvatar(
@@ -140,6 +146,7 @@ class AddResumeScreen extends StatelessWidget {
                         clipBehavior: Clip.none,
                         children: [
                           Container(
+                            margin: const EdgeInsets.only(bottom: 5),
                             width: double.infinity,
                             padding: const EdgeInsets.all(15),
                             decoration: BoxDecoration(
@@ -192,6 +199,7 @@ class AddResumeScreen extends StatelessWidget {
                         children: [
                           Container(
                             width: double.infinity,
+                            margin: const EdgeInsets.only(bottom: 5),
                             padding: const EdgeInsets.all(15),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
@@ -243,6 +251,7 @@ class AddResumeScreen extends StatelessWidget {
                         children: [
                           Container(
                             width: double.infinity,
+                            margin: const EdgeInsets.only(bottom: 5),
                             padding: const EdgeInsets.all(15),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
@@ -295,11 +304,17 @@ class AddResumeScreen extends StatelessWidget {
               ),
             ),
             AppButton(
-              buttontext: "Create",
+              buttontext: _con.resumeModel != null ? "Update" : "Create",
               height: 50,
               onPressed: () {
                 if (_con.validation()) {
-                  _con.createResumeAPI(context);
+                  FocusScope.of(context).unfocus();
+                  if (_con.resumeModel != null) {
+                    _con.editResumeAPI(context,
+                        docId: _con.resumeModel?.id ?? "");
+                  } else {
+                    _con.createResumeAPI(context);
+                  }
                 }
               },
             )

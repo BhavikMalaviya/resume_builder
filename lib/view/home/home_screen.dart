@@ -115,25 +115,42 @@ class HomeScreen extends StatelessWidget {
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
                                         hSizedBox10,
-                                        const CircleAvatar(
-                                          radius: 15,
-                                          backgroundColor:
-                                              AppColors.accentColor,
-                                          child: Icon(
-                                            Icons.edit,
-                                            size: 15,
-                                            color: AppColors.whiteColor,
+                                        GestureDetector(
+                                          onTap: () {
+                                            Get.toNamed(
+                                              AppRoutes.addResumeScreen,
+                                              arguments:
+                                                  _con.listOfResumes[index],
+                                            );
+                                          },
+                                          child: const CircleAvatar(
+                                            radius: 15,
+                                            backgroundColor:
+                                                AppColors.accentColor,
+                                            child: Icon(
+                                              Icons.edit,
+                                              size: 15,
+                                              color: AppColors.whiteColor,
+                                            ),
                                           ),
                                         ),
                                         hSizedBox10,
-                                        const CircleAvatar(
-                                          backgroundColor:
-                                              AppColors.primaryColor,
-                                          radius: 15,
-                                          child: Icon(
-                                            Icons.visibility,
-                                            color: AppColors.whiteColor,
-                                            size: 15,
+                                        GestureDetector(
+                                          onTap: () {
+                                            Get.toNamed(
+                                                AppRoutes.preViewResumeScreen,
+                                                arguments:
+                                                    _con.listOfResumes[index]);
+                                          },
+                                          child: const CircleAvatar(
+                                            backgroundColor:
+                                                AppColors.primaryColor,
+                                            radius: 15,
+                                            child: Icon(
+                                              Icons.visibility,
+                                              color: AppColors.whiteColor,
+                                              size: 15,
+                                            ),
                                           ),
                                         ),
                                       ],

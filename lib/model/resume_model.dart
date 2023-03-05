@@ -12,7 +12,7 @@ class ResumeModel {
     required this.mobile,
     required this.profile,
     required this.objective,
-    this.reference,
+    required this.reference,
     required this.project,
     required this.education,
     required this.experience,
@@ -26,7 +26,7 @@ class ResumeModel {
   final String mobile;
   final String profile;
   final String objective;
-  final String? reference;
+  final String reference;
   final List<Project> project;
   final List<Education> education;
   final List<Experience> experience;

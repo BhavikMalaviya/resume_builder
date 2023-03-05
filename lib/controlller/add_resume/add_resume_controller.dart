@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:resume_builder/controlller/home/home_controller.dart';
 import 'package:resume_builder/model/education_model.dart';
 import 'package:resume_builder/model/exprience_model.dart';
 import 'package:resume_builder/model/project_model.dart';
@@ -65,7 +66,31 @@ class AddResumeController extends GetxController {
   RxString projectTitleError = "".obs;
   RxString descriptionError = "".obs;
   RxBool connection = false.obs;
-  Rx<File> profileImage = File("").obs;
+  RxString profileImage = "".obs;
+
+  ResumeModel? resumeModel;
+  @override
+  void onInit() {
+    if (Get.arguments != null) {
+      resumeModel = Get.arguments;
+      setDetails();
+    }
+    super.onInit();
+  }
+
+  setDetails() {
+    profileImage.value = resumeModel?.profile ?? "";
+    firstNameController.text = resumeModel?.firstName ?? "";
+    lastNameController.text = resumeModel?.lastName ?? "";
+    mobileNumberController.text = resumeModel?.mobile ?? "";
+    emailController.text = resumeModel?.email ?? "";
+    objectiveController.text = resumeModel?.objective ?? "";
+    referenceController.text = resumeModel?.reference ?? "";
+    education.value = resumeModel?.education ?? [];
+    project.value = resumeModel?.project ?? [];
+    skills.value = resumeModel?.skills ?? [];
+    experience.value = resumeModel?.experience ?? [];
+  }
 
   bool exprienceValidation() {
     RxBool valid = true.obs;
@@ -239,32 +264,32 @@ class AddResumeController extends GetxController {
     if (connection.value) {
       LoadingOverlay.of(context).show();
       String docId = FirebaseFirestore.instance.collection("resume").doc().id;
-      Reference ref = FirebaseStorage.instance
-          .ref()
-          .child("images/${profileImage.value.path}");
-      TaskSnapshot uploadTask = await ref.putFile(profileImage.value);
-      String downloadURL = await uploadTask.ref.getDownloadURL();
-      FirebaseFirestore.instance
+      Reference ref =
+          FirebaseStorage.instance.ref().child("images/${profileImage.value}");
+      TaskSnapshot uploadTask = await ref.putFile(File(profileImage.value));
+      profileImage.value = await uploadTask.ref.getDownloadURL();
+      await FirebaseFirestore.instance
           .collection("resume")
           .doc(docId)
           .set(ResumeModel(
             id: docId,
+            reference: referenceController.text,
             firstName: firstNameController.text,
             lastName: lastNameController.text,
             email: emailController.text,
             mobile: mobileNumberController.text,
-            profile: downloadURL,
+            profile: profileImage.value,
             objective: objectiveController.text,
             project: project,
             education: education,
             experience: experience,
             skills: skills,
-          ).toJson())
-          .then((value) {
-        toast("Resume create successfully");
-        LoadingOverlay.of(context).hide();
-        Get.back();
-      });
+          ).toJson());
+
+      Get.find<HomeController>().getResumeAPI();
+      toast("Resume create successfully");
+      LoadingOverlay.of(context).hide();
+      Get.back();
     } else {
       toast("Oops! No internet connection");
     }
@@ -275,15 +300,14 @@ class AddResumeController extends GetxController {
         await NetworkInfo(connectivity: Connectivity()).isConnected();
     if (connection.value) {
       LoadingOverlay.of(context).show();
-      String downloadURL = "";
-      if (profileImage.value.path.isNotEmpty &&
-          profileImage.value.path.toString() != "null") {
+      if (!profileImage.value.contains("http")) {
         Reference ref = FirebaseStorage.instance
             .ref()
-            .child("images/${profileImage.value.path}");
+            .child("images/${profileImage.value}");
 
-        downloadURL =
-            await (await ref.putFile(profileImage.value)).ref.getDownloadURL();
+        profileImage.value = await (await ref.putFile(File(profileImage.value)))
+            .ref
+            .getDownloadURL();
       }
 
       await FirebaseFirestore.instance.collection("resume").doc(docId).update(
@@ -291,12 +315,10 @@ class AddResumeController extends GetxController {
               id: docId,
               firstName: firstNameController.text,
               lastName: lastNameController.text,
+              reference: referenceController.text,
               email: emailController.text,
               mobile: mobileNumberController.text,
-              profile: profileImage.value.path.isNotEmpty &&
-                      profileImage.value.path.toString() != "null"
-                  ? profileImage.value.path
-                  : downloadURL,
+              profile: profileImage.value,
               objective: objectiveController.text,
               project: project,
               education: education,
@@ -304,6 +326,7 @@ class AddResumeController extends GetxController {
               skills: skills,
             ).toJson(),
           );
+      Get.find<HomeController>().getResumeAPI();
       Get.back();
       toast("Resume update successfully");
       LoadingOverlay.of(context).hide();
@@ -342,7 +365,7 @@ class AddResumeController extends GetxController {
             ),
           ]);
       if (croppedFile != null) {
-        profileImage.value = File(croppedFile.path);
+        profileImage.value = File(croppedFile.path).path;
       }
     } else {
       return;
