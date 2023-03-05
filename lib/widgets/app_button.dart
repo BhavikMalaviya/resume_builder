@@ -26,32 +26,28 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
-      height: height ?? 50,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(radius ?? 15),
-          ),
-          elevation: 0,
-          backgroundColor: buttonColor ?? AppColors.accentColor,
-          padding: padding ?? EdgeInsets.zero,
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radius ?? 10),
         ),
-        child: buttontext.runtimeType == String
-            ? Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Text(
-                  buttontext,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 16,
-                  ),
-                ),
-              )
-            : buttontext,
+        elevation: 0,
+        backgroundColor: buttonColor ?? AppColors.accentColor,
+        padding: padding ?? EdgeInsets.zero,
       ),
+      child: buttontext.runtimeType == String
+          ? Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                buttontext,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                ),
+              ),
+            )
+          : buttontext,
     );
   }
 }

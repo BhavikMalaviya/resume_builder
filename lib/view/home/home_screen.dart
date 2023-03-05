@@ -27,12 +27,16 @@ class HomeScreen extends StatelessWidget {
           )
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Get.toNamed(AppRoutes.addResumeScreen);
-        },
-        backgroundColor: AppColors.accentColor,
-        child: const Icon(Icons.add),
+      floatingActionButton: SizedBox(
+        height: 45,
+        width: 45,
+        child: FloatingActionButton(
+          onPressed: () {
+            Get.toNamed(AppRoutes.addResumeScreen);
+          },
+          backgroundColor: AppColors.accentColor,
+          child: const Icon(Icons.add),
+        ),
       ),
       body: Obx(
         () => _con.isLoading.value
