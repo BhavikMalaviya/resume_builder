@@ -11,12 +11,14 @@ class Education {
   final String gradeScore;
   final String year;
 
-  factory Education.fromJson(Map<String, dynamic> json) => Education(
-        courseDegree: json["course_degree"],
-        schoolUniversity: json["school_university"],
-        gradeScore: json["grade_score"],
-        year: json["year"],
-      );
+  factory Education.fromJson(Map<String, dynamic> json) {
+    return Education(
+      courseDegree: json["course_degree"],
+      schoolUniversity: json["school_university"],
+      gradeScore: json["grade_score"],
+      year: json["year"],
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         "course_degree": courseDegree,

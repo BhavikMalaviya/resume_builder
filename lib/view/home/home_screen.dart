@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:resume_builder/controlller/home/home_controller.dart';
 import 'package:resume_builder/routes/app_routes.dart';
 import 'package:resume_builder/utils/app_colors.dart';
+import 'package:resume_builder/utils/app_loader.dart';
 
 import '../../utils/sizebox.dart';
 
@@ -40,8 +41,8 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Obx(
         () => _con.isLoading.value
-            ? const Center(child: CircularProgressIndicator.adaptive())
-            : _con.listOfResumes.isNotEmpty
+            ? const AppLoader()
+            : _con.listOfResumes.isEmpty
                 ? const Center(
                     child: Text(
                       "No Resume Available",
@@ -53,11 +54,8 @@ class HomeScreen extends StatelessWidget {
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.fromLTRB(15, 25, 15, 60),
-                    itemCount: 10,
-                    // itemCount: _con.listOfResumes.length,
-
+                    itemCount: _con.listOfResumes.length,
                     itemBuilder: (context, index) {
-                      // var data = _con.listOfResumes[index];
                       return Stack(
                         alignment: Alignment.topRight,
                         clipBehavior: Clip.none,
@@ -80,12 +78,11 @@ class HomeScreen extends StatelessWidget {
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         borderRadius: BorderRadius.circular(8),
-                                        // image: DecorationImage(
-                                        //   image: data.profileUrl!.isEmpty
-                                        //       ? AssetImage(AppImage.defaultImage)
-                                        //       : NetworkImage(data.profileUrl!)
-                                        //           as ImageProvider,
-                                        // ),
+                                        image: DecorationImage(
+                                          image: NetworkImage(
+                                            _con.listOfResumes[index].profile,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                     wSizedBox10,
@@ -95,14 +92,22 @@ class HomeScreen extends StatelessWidget {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Row(
-                                            children: const [
-                                              Text("name "),
-                                              Text("name"),
+                                            children: [
+                                              Text(
+                                                _con.listOfResumes[index]
+                                                    .firstName,
+                                              ),
+                                              wSizedBox10,
+                                              Text(
+                                                _con.listOfResumes[index]
+                                                    .lastName,
+                                              ),
                                             ],
                                           ),
-                                          const Text("data.email!"),
-                                          const Text(
-                                              "data.createAt.toString()"),
+                                          hSizedBox4,
+                                          Text(
+                                            _con.listOfResumes[index].email,
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -144,7 +149,7 @@ class HomeScreen extends StatelessWidget {
                             right: -10,
                             child: GestureDetector(
                               onTap: () async =>
-                                  await deleteResumeDialog(context),
+                                  await deleteResumeDialog(context, index),
                               child: const CircleAvatar(
                                 radius: 14,
                                 backgroundColor: AppColors.redColor,
@@ -164,7 +169,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Future<void> deleteResumeDialog(context) async {
+  Future<void> deleteResumeDialog(context, index) async {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -181,8 +186,8 @@ class HomeScreen extends StatelessWidget {
                   'YES',
                   style: TextStyle(color: AppColors.redColor),
                 ),
-                onPressed: () {
-                  Get.back();
+                onPressed: () async {
+                  await _con.deleteResume(_con.listOfResumes[index].id, index);
                 },
               ),
               TextButton(
@@ -192,11 +197,6 @@ class HomeScreen extends StatelessWidget {
                 ),
                 onPressed: () {
                   Get.back();
-
-                  // FirebaseFirestore.instance
-                  //     .collection("resume")
-                  //     .doc(data.docId)
-                  //     .delete();
                 },
               ),
             ],

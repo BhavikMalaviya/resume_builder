@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:resume_builder/routes/app_routes.dart';
 import 'package:resume_builder/view/add_resume/add_resume_screen.dart';
 import 'package:resume_builder/view/home/home_screen.dart';
+import 'package:resume_builder/view/preview/preview_resume_screen.dart';
 import 'package:resume_builder/view/splash/splash_screen.dart';
 
 class AppPages {
@@ -9,5 +10,7 @@ class AppPages {
     GetPage(name: AppRoutes.splashScreen, page: () => const SplashScreen()),
     GetPage(name: AppRoutes.homeScreen, page: () => HomeScreen()),
     GetPage(name: AppRoutes.addResumeScreen, page: () => AddResumeScreen()),
+    GetPage(
+        name: AppRoutes.preViewResumeScreen, page: () => PreviewResumeScreen()),
   ];
 }

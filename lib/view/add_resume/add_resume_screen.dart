@@ -36,11 +36,16 @@ class AddResumeScreen extends StatelessWidget {
                       CircleAvatar(
                         backgroundColor: AppColors.accentColor.withOpacity(0.2),
                         radius: 70,
-                        child: Icon(
-                          Icons.person,
-                          size: 50,
-                          color: AppColors.accentColor.withOpacity(0.5),
-                        ),
+                        child: _con.profileImage.value.path.isEmpty
+                            ? Icon(
+                                Icons.person,
+                                size: 50,
+                                color: AppColors.accentColor.withOpacity(0.5),
+                              )
+                            : ClipRRect(
+                                borderRadius: BorderRadius.circular(100),
+                                child: Image.file(_con.profileImage.value),
+                              ),
                       ),
                       const CircleAvatar(
                         backgroundColor: AppColors.accentColor,
@@ -413,13 +418,13 @@ class AddResumeScreen extends StatelessWidget {
               children: [
                 AppTextField(
                   hintText: "Title",
-                  controller: _con.companyNameController,
-                  errorMessage: _con.companyNameError,
+                  controller: _con.projectTitleController,
+                  errorMessage: _con.projectTitleError,
                 ),
                 AppTextField(
                   hintText: "Description",
-                  controller: _con.jobTitleController,
-                  errorMessage: _con.jobTitleError,
+                  controller: _con.descriptionController,
+                  errorMessage: _con.descriptionError,
                 ),
                 SizedBox(
                   width: 100,

@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -11,6 +12,7 @@ import 'package:resume_builder/model/education_model.dart';
 import 'package:resume_builder/model/exprience_model.dart';
 import 'package:resume_builder/model/project_model.dart';
 import 'package:resume_builder/model/resume_model.dart';
+import 'package:resume_builder/network/network_info.dart';
 import 'package:resume_builder/utils/app_colors.dart';
 import 'package:resume_builder/utils/globle.dart';
 import 'package:resume_builder/utils/overlay_loading.dart';
@@ -62,7 +64,7 @@ class AddResumeController extends GetxController {
   RxString yearError = "".obs;
   RxString projectTitleError = "".obs;
   RxString descriptionError = "".obs;
-
+  RxBool connection = false.obs;
   Rx<File> profileImage = File("").obs;
 
   bool exprienceValidation() {
@@ -127,7 +129,7 @@ class AddResumeController extends GetxController {
       valid.value = false;
     }
     if (descriptionController.value.text.isEmpty) {
-      schoolError.value = "Please enter description";
+      descriptionError.value = "Please enter description";
       valid.value = false;
     }
 
@@ -190,7 +192,10 @@ class AddResumeController extends GetxController {
 
   bool validation() {
     RxBool isValid = true.obs;
-
+    firstNameError.value = "";
+    lastNameError.value = "";
+    emailError.value = "";
+    emailError.value = "";
     if (firstNameController.value.text.isEmpty) {
       firstNameError.value = "Please enter first name";
       isValid.value = false;
@@ -201,94 +206,110 @@ class AddResumeController extends GetxController {
     }
 
     if (emailController.value.text.isEmpty) {
-      emailError.value = "Email field require";
+      emailError.value = "Please enter email address";
       isValid.value = false;
     } else if (!emailController.value.text.isEmail) {
-      emailError.value = "Enter Valid Email";
+      emailError.value = "Please enter valida email address";
       isValid.value = false;
     }
 
     if (mobileNumberController.value.text.isEmpty) {
-      mobileNumberError.value = "Mobile Number field require";
+      mobileNumberError.value = "Please enter mobile number";
       isValid.value = false;
     } else if (mobileNumberController.value.text.length != 10) {
-      mobileNumberError.value = "Enter Valid Mobile Number";
+      mobileNumberError.value = "Please enter valid mobile number";
+      isValid.value = false;
+    }
+
+    if (objectiveController.value.text.isEmpty) {
+      objectiveError.value = "Please enter objective";
+      isValid.value = false;
+    }
+    if (referenceController.value.text.isEmpty) {
+      refereneError.value = "Please enter reference";
       isValid.value = false;
     }
 
     return isValid.value;
   }
 
-  createResumeAPI(context) async {
-    LoadingOverlay.of(context).show();
-
-    String docId = FirebaseFirestore.instance.collection("resume").doc().id;
-
-    Reference ref = FirebaseStorage.instance
-        .ref()
-        .child("images/${profileImage.value.path}");
-
-    TaskSnapshot uploadTask = await ref.putFile(profileImage.value);
-
-    String downloadURL = await uploadTask.ref.getDownloadURL();
-
-    FirebaseFirestore.instance
-        .collection("resume")
-        .doc(docId)
-        .set(ResumeModel(
-          id: docId,
-          firstName: firstNameController.text,
-          lastName: lastNameController.text,
-          email: emailController.text,
-          mobile: mobileNumberController.text,
-          profile: downloadURL,
-          objective: objectiveController.text,
-          project: project,
-          education: education,
-          experience: experience,
-          skills: skills,
-        ).toJson())
-        .then((value) {
-      toast("Resume create successfully");
-      Get.back();
-      LoadingOverlay.of(context).hide();
-    });
-  }
-
-  editResumeAPI(context, {required String docId}) async {
-    LoadingOverlay.of(context).show();
-    String downloadURL = "";
-    if (profileImage.value.path.isNotEmpty &&
-        profileImage.value.path.toString() != "null") {
+  Future<void> createResumeAPI(context) async {
+    connection.value =
+        await NetworkInfo(connectivity: Connectivity()).isConnected();
+    if (connection.value) {
+      LoadingOverlay.of(context).show();
+      String docId = FirebaseFirestore.instance.collection("resume").doc().id;
       Reference ref = FirebaseStorage.instance
           .ref()
           .child("images/${profileImage.value.path}");
-
-      downloadURL =
-          await (await ref.putFile(profileImage.value)).ref.getDownloadURL();
-    }
-
-    await FirebaseFirestore.instance.collection("resume").doc(docId).update(
-          ResumeModel(
+      TaskSnapshot uploadTask = await ref.putFile(profileImage.value);
+      String downloadURL = await uploadTask.ref.getDownloadURL();
+      FirebaseFirestore.instance
+          .collection("resume")
+          .doc(docId)
+          .set(ResumeModel(
             id: docId,
             firstName: firstNameController.text,
             lastName: lastNameController.text,
             email: emailController.text,
             mobile: mobileNumberController.text,
-            profile: profileImage.value.path.isNotEmpty &&
-                    profileImage.value.path.toString() != "null"
-                ? profileImage.value.path
-                : downloadURL,
+            profile: downloadURL,
             objective: objectiveController.text,
             project: project,
             education: education,
             experience: experience,
             skills: skills,
-          ).toJson(),
-        );
-    Get.back();
-    toast("Resume update successfully");
-    LoadingOverlay.of(context).hide();
+          ).toJson())
+          .then((value) {
+        toast("Resume create successfully");
+        LoadingOverlay.of(context).hide();
+        Get.back();
+      });
+    } else {
+      toast("Oops! No internet connection");
+    }
+  }
+
+  Future<void> editResumeAPI(context, {required String docId}) async {
+    connection.value =
+        await NetworkInfo(connectivity: Connectivity()).isConnected();
+    if (connection.value) {
+      LoadingOverlay.of(context).show();
+      String downloadURL = "";
+      if (profileImage.value.path.isNotEmpty &&
+          profileImage.value.path.toString() != "null") {
+        Reference ref = FirebaseStorage.instance
+            .ref()
+            .child("images/${profileImage.value.path}");
+
+        downloadURL =
+            await (await ref.putFile(profileImage.value)).ref.getDownloadURL();
+      }
+
+      await FirebaseFirestore.instance.collection("resume").doc(docId).update(
+            ResumeModel(
+              id: docId,
+              firstName: firstNameController.text,
+              lastName: lastNameController.text,
+              email: emailController.text,
+              mobile: mobileNumberController.text,
+              profile: profileImage.value.path.isNotEmpty &&
+                      profileImage.value.path.toString() != "null"
+                  ? profileImage.value.path
+                  : downloadURL,
+              objective: objectiveController.text,
+              project: project,
+              education: education,
+              experience: experience,
+              skills: skills,
+            ).toJson(),
+          );
+      Get.back();
+      toast("Resume update successfully");
+      LoadingOverlay.of(context).hide();
+    } else {
+      toast("Oops! No internet connection");
+    }
   }
 
   Future<void> pickImage(bool fromGallery) async {

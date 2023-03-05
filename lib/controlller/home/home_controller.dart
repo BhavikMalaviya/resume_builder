@@ -1,43 +1,52 @@
+import 'dart:developer';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get/get.dart';
+import 'package:resume_builder/model/resume_model.dart';
+import 'package:resume_builder/network/network_info.dart';
+import 'package:resume_builder/utils/globle.dart';
+import 'package:resume_builder/utils/overlay_loading.dart';
 
 class HomeController extends GetxController {
   RxBool isLoading = false.obs;
-  List listOfResumes = [].obs;
+  List<ResumeModel> listOfResumes = <ResumeModel>[].obs;
+  RxBool connection = false.obs;
+
   @override
   void onInit() {
-    // TODO: implement onInit
+    getResumeAPI();
     super.onInit();
   }
 
   Future<void> getResumeAPI() async {
-    //  try {
-    // isLoading.value = true;
-    // var data = FirebaseFirestore.instance.collection("resume").snapshots();
+    connection.value =
+        await NetworkInfo(connectivity: Connectivity()).isConnected();
+    if (connection.value) {
+      listOfResumes.clear();
 
-    // await data.forEach((element) {
-    //   resumeList.clear();
-    //   element.docs.asMap().forEach((index, data) {
-    //     return resumeList.add(ResumeData(
-    //       address: data["address"],
-    //       createAt:
-    //           DateFormat("dd/MM/yyyy").format(data["create_at"].toDate()),
-    //       docId: data["doc_id"],
-    //       email: data["email"],
-    //       mobileNumber: data["mobile_number"],
-    //       name: data["name"],
-    //       profileUrl: data["profile_url"],
-    //       role: data["role"],
-    //       summary: data["summary"],
-    //     ));
-    //   });
-    //   isLoading.value = false;
-    // });
+      try {
+        isLoading.value = true;
+        QuerySnapshot<Map<String, dynamic>> data =
+            await FirebaseFirestore.instance.collection("resume").get();
 
-    //   isLoading.value = false;
-    // } catch (e) {
-    //   log(e.toString());
-    // }
-    // }
-// }
+        for (var e in data.docs) {
+          listOfResumes.add(ResumeModel.fromJson(e.data()));
+        }
+        isLoading.value = false;
+      } catch (e) {
+        log(e.toString());
+      }
+    } else {
+      toast("Oops! No internet conncetion");
+    }
+  }
+
+  deleteResume(String id, index) async {
+    LoadingOverlay.of(Get.context!).show();
+    await FirebaseFirestore.instance.collection("resume").doc(id).delete();
+    listOfResumes.removeAt(index);
+    Get.back();
+    LoadingOverlay.of(Get.context!).hide();
   }
 }
